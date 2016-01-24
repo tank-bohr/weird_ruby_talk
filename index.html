@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
+    <meta content="width=1024, user-scalable=no" name="viewport" />
+    <title>Weird ruby</title>
+    <link href="vendor/deck.js/core/deck.core.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/extensions/goto/deck.goto.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/extensions/menu/deck.menu.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/extensions/navigation/deck.navigation.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/extensions/status/deck.status.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/extensions/scale/deck.scale.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/themes/style/swiss.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/themes/transition/horizontal-slide.css" media="screen" rel="stylesheet" />
+    <link href="vendor/deck.js/core/print.css" media="print" rel="stylesheet" />
+    <script src="vendor/deck.js/modernizr.custom.js"></script>
+  </head>
+  <body>
+    <div class="deck-container">
+      <section class="slide" id="title">
+        <h1>
+          Странный руби
+        </h1>
+      </section>
+      <section class="slide" id="aboutbookmate">
+        <img src="img/furkat.png" />
+      </section>
+      <section class="slide" id="ancestors">
+        <h2>
+          Языки, которые повлияли на руби
+        </h2>
+        <ul>
+          <li>
+            <h3>
+              Perl
+            </h3>
+          </li>
+          <li>
+            <h3>
+              Lisp
+            </h3>
+          </li>
+          <li>
+            <h3>
+              Smalltalk
+            </h3>
+          </li>
+        </ul>
+      </section>
+      <section class="slide" id="matz">
+        <h2>
+          Matz про ruby
+        </h2>
+        <blockquote cite="http://www.linuxdevcenter.com/pub/a/linux/2001/11/29/ruby.html">
+          <p>
+            Ruby's class library is an object-oriented reorganization of Perl functionality plus some Smalltalk and Lisp stuff
+          </p>
+          <p>
+            <cite>Yukihiro Matsumoto</cite>
+          </p>
+        </blockquote>
+      </section>
+      <section class="slide" id="flip-flop">
+        <h2>
+          Flip-flop operator
+        </h2>
+        <pre><code>(1..20).each do |x|
+  puts x if (x == 5) .. (x == 10)
+end</code></pre>
+        <p>
+          вывод:
+        </p>
+        <pre>5
+6
+7
+8
+9
+10</pre>
+      </section>
+      <section class="slide" id="flip-flop-pl">
+        <h2>
+          Как это выглядит на языке Perl
+        </h2>
+        <pre><code>while (&lt;DATA&gt;) {
+  if (/start/ .. /end/) {
+    print "flip flop true: $_";
+  }
+  else {
+    print "flip flop false: $_";
+  }
+}
+
+__DATA__
+foo
+bar
+start
+inside
+blah
+this is the end
+baz</code></pre>
+      </section>
+      <section class="slide" id="flip-flop-rb">
+        <h2>
+          То же самое на языке Ruby
+        </h2>
+        <pre><code>while DATA.gets
+  if /start/ .. /end/
+    print "flip flop true: #{$_}";
+  else
+    print "flip flop false: #{$_}";
+  end
+end
+
+__END__
+foo
+bar
+start
+inside
+blah
+this is the end
+baz</code></pre>
+      </section>
+      <section class="slide" id="console-trick">
+        <h2>
+          В консольке
+        </h2>
+        <pre>$ ruby -ne 'puts $_ if /start/ .. /end/' file.txt
+start
+inside
+blah
+this is the end</pre>
+      </section>
+      <section class="slide" id="flip-flop-removal">
+        <h2>
+          Есть тикет
+        </h2>
+        <img src="img/remove-flip-flop.png" />
+      </section>
+      <section class="slide" id="flip-flop-endoh">
+        <img src="img/flip-flop-endoh.png" />
+        <p>
+          ...
+        </p>
+        <img src="img/flip-flop-anon.png" />
+      </section>
+      <sectiom class="slide" id="refinements1">
+        <h2>
+          Refinements
+        </h2>
+        <pre><code>module Compaction
+  refine Hash
+    def compact
+      self.select { |_, value| !value.nil? }
+    end
+  end
+end</code></pre>
+        <p></p>
+        <pre><code>class Dummy
+  using Compaction
+  { a: true, b: false, c: nil}.compact # => { a: true, b: false}
+end
+{ a: true, b: false, c: nil}.compact # => NoMethodError</code></pre></sectiom><sectiom class="slide" id="refinements2">
+        <h2>
+          Refinements
+        </h2>
+        <pre><code>class Dummy
+  using Compaction
+  def action
+    { a: true, b: false, c: nil}.compact
+  end
+end
+
+Dummy.new.action # => { a: true, b: false}</code></pre></sectiom><sectiom class="slide" id="refinements3">
+        <h2>
+          Refinements
+        </h2>
+        <pre><code>class Dummy
+  using Compaction
+  def action
+    { a: true, b: false, c: nil}
+  end
+end
+
+Dummy.new.action.compact # => NoMethodError</code></pre></sectiom>
+      <section class="slide" id="refinements4">
+        <h2>
+          Refinements
+        </h2>
+        <pre><code>class Dummy
+  using Compaction
+end
+
+class Dummy
+  { a: true, b: false, c: nil}.compact # => NoMethodError
+end</code></pre>
+      </section>
+      <section class="slide" id="refinements5">
+        <h2>
+          Refinements
+        </h2>
+        <pre><code>class Dummy
+  using Compaction
+  def action
+    yield
+  end
+end
+
+Dummy.new.action {
+  { a: true, b: false, c: nil}.compact
+} # => NoMethodError</code></pre>
+      </section>
+      <section class="slide" id="refinements">
+        <h2>
+          Refinements
+        </h2>
+        <ul>
+          <li>
+            Lexical scope
+          </li>
+          <li>
+            Появились в 2.0, но их можно было использовать на top-level'е
+          </li>
+          <li>
+            Начиная с 2.1 можно писать `using` где угодно
+          </li>
+        </ul>
+      </section>
+      <section class="slide" id="refinements-talk">
+        <h2>
+          Why is nobody using Refinements?
+        </h2>
+        <h3>
+          James Adam (@lazyatom)
+        </h3>
+        <p>
+          <a href="http://interblah.net/why-is-nobody-using-refinements">Презентация на RubyConf 2015</a>
+        </p>
+      </section>
+      <section class="slide" id="continuations">
+        <h2>
+          Continuations
+        </h2>
+        <pre><code>require "continuation"
+arr = %w[Freddie Herbie Ron Max Ringo]
+callcc { |cc| $cc = cc }
+message = arr.shift
+puts message
+$cc.call unless message =~ /Max/</code></pre>
+        <p>
+          вывод:
+        </p>
+        <pre>Freddie
+Herbie
+Ron
+Max</pre>
+      </section>
+      <section class="slide" id="convert-callback">
+        <h2>
+          Пример
+        </h2>
+        <pre><code>def map_tree(tree, &amp;proc)
+  if tree.is_a? Array
+    tree.map { |node| map_tree(node, &amp;proc) }
+  else
+    proc[tree]
+  end
+end</code></pre>
+      </section>
+      <section class="slide" id="trees_prefix">
+        <h2>
+          Задача: найти общий префикс
+        </h2>
+        <pre><code>def trees_prefix(tree_a, tree_b)
+  callcc do |return_cont|
+    fold_trees([],
+      make_iterator(tree_a),
+      make_iterator(tree_b)
+    ) do |acc, leaf_a, leaf_b|
+      if leaf_a == leaf_b
+        acc << leaf_a
+      else
+        return_cont[acc]
+      end
+    end
+  end
+end</code></pre>
+      </section>
+      <section class="slide" id="fold_trees">
+        <h2>
+          Параллельная поэлементая обработка
+        </h2>
+        <pre><code>def fold_trees(acc, iterator_a, iterator_b, &amp;proc)
+  leaf_a, next_iterator_a = next_step(iterator_a)
+  leaf_b, next_iterator_b = next_step(iterator_b)
+  if next_iterator_a && next_iterator_b
+    next_acc = proc[acc, leaf_a, leaf_b]
+    fold_trees(next_acc, next_iterator_a, next_iterator_b, &amp;proc)
+  else
+    acc
+  end
+end</code></pre>
+      </section>
+      <section class="slide" id="make_iterator">
+        <h2>
+          Имплементация
+        </h2>
+        <pre><code>def make_iterator(tree)
+  -> flow {
+    map_tree(tree) { |leaf|
+      flow = callcc { |k| flow[leaf, k] }
+    }
+    flow[false, false]
+  }
+end</code></pre>
+      </section>
+      <section class="slide" id="next_step">
+        <h2>
+          Имплементация
+        </h2>
+        <pre><code>def next_step(iterator)
+  callcc { |k| iterator[k] }
+end</code></pre>
+      </section>
+      <section class="slide" id="deprecation">
+        <h2>
+          Начинная с 2.2 их задепрекейтили
+        </h2>
+        <pre>irb(main):001:0> require 'continuation'
+continuation.bundle: warning: callcc is obsolete; use Fiber instead
+=> true</pre>
+      </section>
+      <section class="slide" id="continuations_ticket">
+        <h2>
+          Есть тикет
+        </h2>
+        <img src="img/obsolete_continuations.png" />
+      </section>
+      <section class="slide" id="endoh-bummer">
+        <h2>
+          Юсуки не выдержал
+        </h2>
+        <img src="img/endoh-on-continuations.png" />
+      </section>
+      <section class="slide" id="make_iterator-fibers">
+        <h2>
+          Fibers
+        </h2>
+        <pre><code>def make_iterator(tree)
+  Fiber.new do
+    map_tree(tree) { |leaf|
+      Fiber.yield leaf, Fiber.current
+    }
+    Fiber.yield(false, false)
+  end
+end</code></pre>
+      </section>
+      <section class="slide" id="make_iterator-сontinuations">
+        <h2>
+          Continuations
+        </h2>
+        <pre><code>def make_iterator(tree)
+  -> flow {
+    map_tree(tree) { |leaf|
+      flow = callcc { |k| flow[leaf, k] }
+    }
+    flow[false, false]
+  }
+end</code></pre>
+      </section>
+      <section class="slide" id="next_step-fibers">
+        <h2>
+          Fibers
+        </h2>
+        <pre><code>def next_step(iterator)
+  iterator.resume
+end</code></pre>
+      </section>
+      <section class="slide" id="next_step-сontinuations">
+        <h2>
+          Continuations
+        </h2>
+        <pre><code>def next_step(iterator)
+  callcc { |k| iterator[k] }
+end</code></pre>
+      </section>
+      <section class="slide" id="loop-escape">
+        <h2>
+          Выход из цикла без продолжений
+        </h2>
+        <pre><code>def trees_prefix(tree_a, tree_b)
+  catch(:result) do
+    fold_trees([],
+      make_iterator(tree_a),
+      make_iterator(tree_b)
+    ) do |acc, leaf_a, leaf_b|
+      if leaf_a == leaf_b
+        acc << leaf_a
+      else
+        throw :result, acc
+      end
+    end
+  end
+end</code></pre>
+      </section>
+      <section class="slide" id="end">
+        <h2>
+          Конец
+        </h2>
+        <p>
+          Twitter: @tank_bohr
+        </p>
+        <br /><a href="http://tank-bohr.github.io/weird_ruby_talk/">http://tank-bohr.github.io/weird_ruby_talk/</a>
+      </section>
+      <section class="slide" id="links">
+        <h2>
+          Ссылки
+        </h2>
+        <ul>
+          <li>
+            http://nithinbekal.com/posts/ruby-flip-flop/
+          </li>
+          <li>
+            https://juliansimioni.com/blog/deconstructing-fizz-buzz-with-flip-flops-in-ruby/
+          </li>
+          <li>
+            https://bugs.ruby-lang.org/issues/5400
+          </li>
+          <li>
+            https://robm.me.uk/ruby/2013/11/20/ruby-enp.html
+          </li>
+          <li>
+            https://robm.me.uk/ruby/2015/10/31/dollar-underscore.html
+          </li>
+          <li>
+            http://interblah.net/why-is-nobody-using-refinements
+          </li>
+          <li>
+            http://blog.headius.com/2012/11/refining-ruby.html
+          </li>
+          <li>
+            http://www.atdot.net/~ko1/pub/ContinuationFest-ruby.pdf
+          </li>
+          <li>
+            http://fprog.ru/lib/
+          </li>
+          <li>
+            http://fprog.ru/2011/issue7/
+          </li>
+          <li>
+            http://okmij.org/ftp/continuations/against-callcc.html
+          </li>
+        </ul>
+      </section>
+      <div aria-role="navigation">
+        <a class="deck-prev-link" href="#" title="Previous">←</a><a class="deck-next-link" href="#" title="Next">→</a>
+      </div>
+      <p aria-role="status" class="deck-status">
+        <span class="deck-status-current"></span> /<span class="deck-status-total"></span>
+      </p>
+      <form action="." class="goto-form" method="get">
+        <label for="goto-slide">Go to slide:</label><input id="goto-slide" list="goto-datalist" name="slidenum" type="text" />
+        <datalist id="goto-datalist"></datalist>
+        <input type="submit" value="Go" />
+      </form>
+    </div>
+    <script src="vendor/deck.js/jquery.min.js"></script>
+    <script src="vendor/deck.js/core/deck.core.js"></script>
+    <script src="vendor/deck.js/extensions/menu/deck.menu.js"></script>
+    <script src="vendor/deck.js/extensions/goto/deck.goto.js"></script>
+    <script src="vendor/deck.js/extensions/status/deck.status.js"></script>
+    <script src="vendor/deck.js/extensions/navigation/deck.navigation.js"></script>
+    <script src="vendor/deck.js/extensions/scale/deck.scale.js"></script>
+    <script>
+      $(function() { $.deck('.slide'); });
+    </script>
+  </body>
+</html>

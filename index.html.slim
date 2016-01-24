@@ -1,0 +1,406 @@
+doctype html
+html
+  head
+    meta charset='utf-8'
+    meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'
+    meta name='viewport' content='width=1024, user-scalable=no'
+
+    title
+      | Weird ruby
+
+    link rel='stylesheet' media='screen' href='vendor/deck.js/core/deck.core.css'
+    link rel='stylesheet' media='screen' href='vendor/deck.js/extensions/goto/deck.goto.css'
+    link rel='stylesheet' media='screen' href='vendor/deck.js/extensions/menu/deck.menu.css'
+    link rel='stylesheet' media='screen' href='vendor/deck.js/extensions/navigation/deck.navigation.css'
+    link rel='stylesheet' media='screen' href='vendor/deck.js/extensions/status/deck.status.css'
+    link rel='stylesheet' media='screen' href='vendor/deck.js/extensions/scale/deck.scale.css'
+    link rel='stylesheet' media='screen' href='vendor/deck.js/themes/style/swiss.css'
+    link rel='stylesheet' media='screen' href='vendor/deck.js/themes/transition/horizontal-slide.css'
+    link rel='stylesheet' media='print'  href='vendor/deck.js/core/print.css'
+
+    script src='vendor/deck.js/modernizr.custom.js'
+
+  body
+    .deck-container
+
+      section.slide#title
+        h1
+          | Странный руби
+
+      section.slide#aboutbookmate
+        img src='img/furkat.png'
+
+      section.slide#ancestors
+        h2 Языки, которые повлияли на руби
+        ul
+          li: h3 Perl
+          li: h3 Lisp
+          li: h3 Smalltalk
+
+      section.slide#matz
+        h2 Matz про ruby
+        blockquote cite="http://www.linuxdevcenter.com/pub/a/linux/2001/11/29/ruby.html"
+          p Ruby's class library is an object-oriented reorganization of Perl functionality plus some Smalltalk and Lisp stuff
+          p
+            cite Yukihiro Matsumoto
+
+      section.slide#flip-flop
+        h2 Flip-flop operator
+        pre: code
+            | (1..20).each do |x|
+                puts x if (x == 5) .. (x == 10)
+              end
+        p вывод:
+        pre
+          | 5
+            6
+            7
+            8
+            9
+            10
+
+      section.slide#flip-flop-pl
+        h2 Как это выглядит на языке Perl
+        pre: code
+          | while (&lt;DATA&gt;) {
+              if (/start/ .. /end/) {
+                print "flip flop true: $_";
+              }
+              else {
+                print "flip flop false: $_";
+              }
+            }
+
+            __DATA__
+            foo
+            bar
+            start
+            inside
+            blah
+            this is the end
+            baz
+
+      section.slide#flip-flop-rb
+        h2 То же самое на языке Ruby
+        pre: code
+          | while DATA.gets
+              if /start/ .. /end/
+                print "flip flop true: \#{$_}";
+              else
+                print "flip flop false: \#{$_}";
+              end
+            end
+
+            __END__
+            foo
+            bar
+            start
+            inside
+            blah
+            this is the end
+            baz
+
+      section.slide#console-trick
+        h2 В консольке
+        pre
+          | $ ruby -ne 'puts $_ if /start/ .. /end/' file.txt
+            start
+            inside
+            blah
+            this is the end
+
+      section.slide#flip-flop-removal
+        h2 Есть тикет
+        img src="img/remove-flip-flop.png"
+
+      section.slide#flip-flop-endoh
+        img src="img/flip-flop-endoh.png"
+        p ...
+        img src="img/flip-flop-anon.png"
+
+
+      sectiom.slide#refinements1
+        h2 Refinements
+        pre: code
+          | module Compaction
+              refine Hash
+                def compact
+                  self.select { |_, value| !value.nil? }
+                end
+              end
+            end
+
+        p
+        pre: code
+          | class Dummy
+              using Compaction
+              { a: true, b: false, c: nil}.compact # => { a: true, b: false}
+            end
+            { a: true, b: false, c: nil}.compact # => NoMethodError
+
+      sectiom.slide#refinements2
+        h2 Refinements
+
+        pre: code
+          | class Dummy
+              using Compaction
+              def action
+                { a: true, b: false, c: nil}.compact
+              end
+            end
+
+            Dummy.new.action # => { a: true, b: false}
+
+      sectiom.slide#refinements3
+        h2 Refinements
+
+        pre: code
+          | class Dummy
+              using Compaction
+              def action
+                { a: true, b: false, c: nil}
+              end
+            end
+
+            Dummy.new.action.compact # => NoMethodError
+
+      section.slide#refinements4
+        h2 Refinements
+
+        pre: code
+          | class Dummy
+              using Compaction
+            end
+
+            class Dummy
+              { a: true, b: false, c: nil}.compact # => NoMethodError
+            end
+
+      section.slide#refinements5
+        h2 Refinements
+
+        pre: code
+          | class Dummy
+              using Compaction
+              def action
+                yield
+              end
+            end
+
+            Dummy.new.action {
+              { a: true, b: false, c: nil}.compact
+            } # => NoMethodError
+
+      section.slide#refinements
+        h2 Refinements
+        ul
+          li Lexical scope
+          li Появились в 2.0, но их можно было использовать на top-level'е
+          li Начиная с 2.1 можно писать `using` где угодно
+
+      section.slide#refinements-talk
+        h2 Why is nobody using Refinements?
+        h3 James Adam (@lazyatom)
+        p: a href="http://interblah.net/why-is-nobody-using-refinements" Презентация на RubyConf 2015
+
+      section.slide#continuations
+        h2 Continuations
+        pre: code
+          | require "continuation"
+            arr = %w[Freddie Herbie Ron Max Ringo]
+            callcc { |cc| $cc = cc }
+            message = arr.shift
+            puts message
+            $cc.call unless message =~ /Max/
+
+        p вывод:
+
+        pre
+          | Freddie
+            Herbie
+            Ron
+            Max
+
+      section.slide#convert-callback
+        h2 Пример
+        pre: code
+          | def map_tree(tree, &amp;proc)
+              if tree.is_a? Array
+                tree.map { |node| map_tree(node, &amp;proc) }
+              else
+                proc[tree]
+              end
+            end
+
+      section.slide#trees_prefix
+        h2 Задача: найти общий префикс
+        pre: code
+          | def trees_prefix(tree_a, tree_b)
+              callcc do |return_cont|
+                fold_trees([],
+                  make_iterator(tree_a),
+                  make_iterator(tree_b)
+                ) do |acc, leaf_a, leaf_b|
+                  if leaf_a == leaf_b
+                    acc << leaf_a
+                  else
+                    return_cont[acc]
+                  end
+                end
+              end
+            end
+
+      section.slide#fold_trees
+        h2 Параллельная поэлементая обработка
+        pre: code
+          | def fold_trees(acc, iterator_a, iterator_b, &amp;proc)
+              leaf_a, next_iterator_a = next_step(iterator_a)
+              leaf_b, next_iterator_b = next_step(iterator_b)
+              if next_iterator_a && next_iterator_b
+                next_acc = proc[acc, leaf_a, leaf_b]
+                fold_trees(next_acc, next_iterator_a, next_iterator_b, &amp;proc)
+              else
+                acc
+              end
+            end
+
+      section.slide#make_iterator
+        h2 Имплементация
+        pre: code
+          | def make_iterator(tree)
+              -> flow {
+                map_tree(tree) { |leaf|
+                  flow = callcc { |k| flow[leaf, k] }
+                }
+                flow[false, false]
+              }
+            end
+
+      section.slide#next_step
+        h2 Имплементация
+        pre: code
+          | def next_step(iterator)
+              callcc { |k| iterator[k] }
+            end
+
+      section.slide#deprecation
+        h2 Начинная с 2.2 их задепрекейтили
+        pre
+          | irb(main):001:0> require 'continuation'
+            continuation.bundle: warning: callcc is obsolete; use Fiber instead
+            => true
+
+      section.slide#continuations_ticket
+        h2 Есть тикет
+        img src="img/obsolete_continuations.png"
+
+      section.slide#endoh-bummer
+        h2 Юсуки не выдержал
+        img src="img/endoh-on-continuations.png"
+
+      section.slide#make_iterator-fibers
+        h2 Fibers
+        pre: code
+          | def make_iterator(tree)
+              Fiber.new do
+                map_tree(tree) { |leaf|
+                  Fiber.yield leaf, Fiber.current
+                }
+                Fiber.yield(false, false)
+              end
+            end
+
+      section.slide#make_iterator-сontinuations
+        h2 Continuations
+        pre: code
+          | def make_iterator(tree)
+              -> flow {
+                map_tree(tree) { |leaf|
+                  flow = callcc { |k| flow[leaf, k] }
+                }
+                flow[false, false]
+              }
+            end
+
+      section.slide#next_step-fibers
+        h2 Fibers
+        pre: code
+          | def next_step(iterator)
+              iterator.resume
+            end
+
+      section.slide#next_step-сontinuations
+        h2 Continuations
+        pre: code
+          | def next_step(iterator)
+              callcc { |k| iterator[k] }
+            end
+
+      section.slide#loop-escape
+        h2 Выход из цикла без продолжений
+        pre: code
+          | def trees_prefix(tree_a, tree_b)
+              catch(:result) do
+                fold_trees([],
+                  make_iterator(tree_a),
+                  make_iterator(tree_b)
+                ) do |acc, leaf_a, leaf_b|
+                  if leaf_a == leaf_b
+                    acc << leaf_a
+                  else
+                    throw :result, acc
+                  end
+                end
+              end
+            end
+
+      section.slide#end
+        h2
+          | Конец
+
+        p Twitter: @tank_bohr
+        br
+        a href='http://tank-bohr.github.io/weird_ruby_talk/'
+          | http://tank-bohr.github.io/weird_ruby_talk/
+
+      section.slide#links
+        h2 Ссылки
+        ul
+          li http://nithinbekal.com/posts/ruby-flip-flop/
+          li https://juliansimioni.com/blog/deconstructing-fizz-buzz-with-flip-flops-in-ruby/
+          li https://bugs.ruby-lang.org/issues/5400
+          li https://robm.me.uk/ruby/2013/11/20/ruby-enp.html
+          li https://robm.me.uk/ruby/2015/10/31/dollar-underscore.html
+          li http://interblah.net/why-is-nobody-using-refinements
+          li http://blog.headius.com/2012/11/refining-ruby.html
+          li http://www.atdot.net/~ko1/pub/ContinuationFest-ruby.pdf
+          li http://fprog.ru/lib/
+          li http://fprog.ru/2011/issue7/
+          li http://okmij.org/ftp/continuations/against-callcc.html
+
+      div aria-role='navigation'
+        a.deck-prev-link href='#' title='Previous'
+          | ←
+        a.deck-next-link href='#' title='Next'
+          | →
+      p.deck-status aria-role='status'
+        span.deck-status-current
+        |  /
+        span.deck-status-total
+      form.goto-form action='.' method='get'
+        label for='goto-slide'
+          | Go to slide:
+        input#goto-slide type='text' name='slidenum' list='goto-datalist'
+        datalist#goto-datalist
+        input type='submit' value='Go'
+
+    script src='vendor/deck.js/jquery.min.js'
+    script src='vendor/deck.js/core/deck.core.js'
+    script src='vendor/deck.js/extensions/menu/deck.menu.js'
+    script src='vendor/deck.js/extensions/goto/deck.goto.js'
+    script src='vendor/deck.js/extensions/status/deck.status.js'
+    script src='vendor/deck.js/extensions/navigation/deck.navigation.js'
+    script src='vendor/deck.js/extensions/scale/deck.scale.js'
+
+    javascript:
+      $(function() { $.deck('.slide'); });

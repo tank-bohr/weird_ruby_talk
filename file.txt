@@ -1,0 +1,7 @@
+foo
+bar
+start
+inside
+blah
+this is the end
+baz
