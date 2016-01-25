@@ -18,6 +18,11 @@ html
     link rel='stylesheet' media='screen' href='vendor/deck.js/themes/transition/horizontal-slide.css'
     link rel='stylesheet' media='print'  href='vendor/deck.js/core/print.css'
 
+    link rel='stylesheet' href='vendor/deck.js/extensions/codemirror/deck.codemirror.css'
+    link rel='stylesheet' href='vendor/deck.js/extensions/codemirror/themes/default.css'
+
+    link rel='stylesheet' href='style.css'
+
     script src='vendor/deck.js/modernizr.custom.js'
 
   body
@@ -46,7 +51,7 @@ html
 
       section.slide#flip-flop
         h2 Flip-flop operator
-        pre: code
+        div: textarea.code#code mode='ruby'
             | (1..20).each do |x|
                 puts x if (x == 5) .. (x == 10)
               end
@@ -59,46 +64,47 @@ html
             9
             10
 
-      section.slide#flip-flop-pl
-        h2 Как это выглядит на языке Perl
-        pre: code
-          | while (&lt;DATA&gt;) {
-              if (/start/ .. /end/) {
-                print "flip flop true: $_";
-              }
-              else {
-                print "flip flop false: $_";
-              }
-            }
+      section.slide#flip-flop-pl-vs-rb
+        h2 Perl vs Ruby
+        table
+          tr
+            th Perl
+            th Ruby
+          tr
+            td: div: textarea.code#code mode='perl'
+              | while (<DATA>) {
+                  if (/start/ .. /end/) {
+                    print "flip flop true: $_";
+                  } else {
+                    print "flip flop false: $_";
+                  }
+                }
 
-            __DATA__
-            foo
-            bar
-            start
-            inside
-            blah
-            this is the end
-            baz
+                __DATA__
+                foo
+                bar
+                start
+                inside
+                blah
+                this is the end
+                baz
+            td: div: textarea.code#code mode='ruby'
+              | while DATA.gets
+                  if /start/ .. /end/
+                    print "flip flop true: \#{$_}";
+                  else
+                    print "flip flop false: \#{$_}";
+                  end
+                end
 
-      section.slide#flip-flop-rb
-        h2 То же самое на языке Ruby
-        pre: code
-          | while DATA.gets
-              if /start/ .. /end/
-                print "flip flop true: \#{$_}";
-              else
-                print "flip flop false: \#{$_}";
-              end
-            end
-
-            __END__
-            foo
-            bar
-            start
-            inside
-            blah
-            this is the end
-            baz
+                __END__
+                foo
+                bar
+                start
+                inside
+                blah
+                this is the end
+                baz
 
       section.slide#console-trick
         h2 В консольке
@@ -121,7 +127,7 @@ html
 
       sectiom.slide#refinements1
         h2 Refinements
-        pre: code
+        div: textarea.code#code mode='ruby'
           | module Compaction
               refine Hash
                 def compact
@@ -131,7 +137,7 @@ html
             end
 
         p
-        pre: code
+        div: textarea.code#code mode='ruby'
           | class Dummy
               using Compaction
               { a: true, b: false, c: nil}.compact # => { a: true, b: false}
@@ -141,7 +147,7 @@ html
       sectiom.slide#refinements2
         h2 Refinements
 
-        pre: code
+        div: textarea.code#code mode='ruby'
           | class Dummy
               using Compaction
               def action
@@ -154,7 +160,7 @@ html
       sectiom.slide#refinements3
         h2 Refinements
 
-        pre: code
+        div: textarea.code#code mode='ruby'
           | class Dummy
               using Compaction
               def action
@@ -167,7 +173,7 @@ html
       section.slide#refinements4
         h2 Refinements
 
-        pre: code
+        div: textarea.code#code mode='ruby'
           | class Dummy
               using Compaction
             end
@@ -179,7 +185,7 @@ html
       section.slide#refinements5
         h2 Refinements
 
-        pre: code
+        div: textarea.code#code mode='ruby'
           | class Dummy
               using Compaction
               def action
@@ -201,11 +207,13 @@ html
       section.slide#refinements-talk
         h2 Why is nobody using Refinements?
         h3 James Adam (@lazyatom)
-        p: a href="http://interblah.net/why-is-nobody-using-refinements" Презентация на RubyConf 2015
+        p Презентация на RubyConf 2015
+        img src="img/qrcode.png" alt="http://interblah.net/why-is-nobody-using-refinements"
+        a href="http://interblah.net/why-is-nobody-using-refinements" http://interblah.net/why-is-nobody-using-refinements
 
       section.slide#continuations
         h2 Continuations
-        pre: code
+        div: textarea.code#code mode='ruby'
           | require "continuation"
             arr = %w[Freddie Herbie Ron Max Ringo]
             callcc { |cc| $cc = cc }
@@ -223,7 +231,7 @@ html
 
       section.slide#convert-callback
         h2 Пример
-        pre: code
+        div: textarea.code#code mode='ruby'
           | def map_tree(tree, &amp;proc)
               if tree.is_a? Array
                 tree.map { |node| map_tree(node, &amp;proc) }
@@ -234,7 +242,7 @@ html
 
       section.slide#trees_prefix
         h2 Задача: найти общий префикс
-        pre: code
+        div: textarea.code#code mode='ruby'
           | def trees_prefix(tree_a, tree_b)
               callcc do |return_cont|
                 fold_trees([],
@@ -252,7 +260,7 @@ html
 
       section.slide#fold_trees
         h2 Параллельная поэлементая обработка
-        pre: code
+        div: textarea.code#code mode='ruby'
           | def fold_trees(acc, iterator_a, iterator_b, &amp;proc)
               leaf_a, next_iterator_a = next_step(iterator_a)
               leaf_b, next_iterator_b = next_step(iterator_b)
@@ -266,7 +274,7 @@ html
 
       section.slide#make_iterator
         h2 Имплементация
-        pre: code
+        div: textarea.code#code mode='ruby'
           | def make_iterator(tree)
               -> flow {
                 map_tree(tree) { |leaf|
@@ -278,7 +286,7 @@ html
 
       section.slide#next_step
         h2 Имплементация
-        pre: code
+        div: textarea.code#code mode='ruby'
           | def next_step(iterator)
               callcc { |k| iterator[k] }
             end
@@ -300,45 +308,49 @@ html
 
       section.slide#make_iterator-fibers
         h2 Fibers
-        pre: code
-          | def make_iterator(tree)
-              Fiber.new do
-                map_tree(tree) { |leaf|
-                  Fiber.yield leaf, Fiber.current
-                }
-                Fiber.yield(false, false)
-              end
-            end
-
-      section.slide#make_iterator-сontinuations
-        h2 Continuations
-        pre: code
-          | def make_iterator(tree)
-              -> flow {
-                map_tree(tree) { |leaf|
-                  flow = callcc { |k| flow[leaf, k] }
-                }
-                flow[false, false]
-              }
-            end
+        table
+          tr
+            th Continuations
+            th Fibers
+          tr
+            td: div: textarea.code#code mode='ruby'
+              | def make_iterator(tree)
+                  -> flow {
+                    map_tree(tree) { |leaf|
+                      flow = callcc { |k| flow[leaf, k] }
+                    }
+                    flow[false, false]
+                  }
+                end
+            td: div: textarea.code#code mode='ruby'
+              | def make_iterator(tree)
+                  Fiber.new do
+                    map_tree(tree) { |leaf|
+                      Fiber.yield leaf, Fiber.current
+                    }
+                    Fiber.yield(false, false)
+                  end
+                end
 
       section.slide#next_step-fibers
         h2 Fibers
-        pre: code
-          | def next_step(iterator)
-              iterator.resume
-            end
-
-      section.slide#next_step-сontinuations
-        h2 Continuations
-        pre: code
-          | def next_step(iterator)
-              callcc { |k| iterator[k] }
-            end
+        table
+          tr
+            th Continuations
+            th Fibers
+          tr
+            td: div: textarea.code#code mode='ruby'
+              | def next_step(iterator)
+                  callcc { |k| iterator[k] }
+                end
+            td: div: textarea.code#code mode='ruby'
+              | def next_step(iterator)
+                  iterator.resume
+                end
 
       section.slide#loop-escape
         h2 Выход из цикла без продолжений
-        pre: code
+        div: textarea.code#code mode='ruby'
           | def trees_prefix(tree_a, tree_b)
               catch(:result) do
                 fold_trees([],
@@ -366,17 +378,18 @@ html
       section.slide#links
         h2 Ссылки
         ul
-          li http://nithinbekal.com/posts/ruby-flip-flop/
-          li https://juliansimioni.com/blog/deconstructing-fizz-buzz-with-flip-flops-in-ruby/
-          li https://bugs.ruby-lang.org/issues/5400
-          li https://robm.me.uk/ruby/2013/11/20/ruby-enp.html
-          li https://robm.me.uk/ruby/2015/10/31/dollar-underscore.html
-          li http://interblah.net/why-is-nobody-using-refinements
-          li http://blog.headius.com/2012/11/refining-ruby.html
-          li http://www.atdot.net/~ko1/pub/ContinuationFest-ruby.pdf
-          li http://fprog.ru/lib/
-          li http://fprog.ru/2011/issue7/
-          li http://okmij.org/ftp/continuations/against-callcc.html
+          li: a href="http://nithinbekal.com/posts/ruby-flip-flop/" http://nithinbekal.com/posts/ruby-flip-flop/
+          li: a href="https://juliansimioni.com/blog/deconstructing-fizz-buzz-with-flip-flops-in-ruby/" https://juliansimioni.com/blog/deconstructing-fizz-buzz-with-flip-flops-in-ruby/
+          li: a href="https://bugs.ruby-lang.org/issues/5400" https://bugs.ruby-lang.org/issues/5400
+          li: a href="https://robm.me.uk/ruby/2013/11/20/ruby-enp.html" https://robm.me.uk/ruby/2013/11/20/ruby-enp.html
+          li: a href="https://robm.me.uk/ruby/2015/10/31/dollar-underscore.html" https://robm.me.uk/ruby/2015/10/31/dollar-underscore.html
+          li: a href="http://interblah.net/why-is-nobody-using-refinements" http://interblah.net/why-is-nobody-using-refinements
+          li: a href="http://blog.headius.com/2012/11/refining-ruby.html" http://blog.headius.com/2012/11/refining-ruby.html
+          li: a href="http://www.atdot.net/~ko1/pub/ContinuationFest-ruby.pdf" http://www.atdot.net/~ko1/pub/ContinuationFest-ruby.pdf
+          li: a href="https://bugs.ruby-lang.org/issues/10548" https://bugs.ruby-lang.org/issues/10548
+          li: a href="http://fprog.ru/lib/" http://fprog.ru/lib/
+          li: a href="http://fprog.ru/2011/issue7/" http://fprog.ru/2011/issue7/
+          li: a href="http://okmij.org/ftp/continuations/against-callcc.html" http://okmij.org/ftp/continuations/against-callcc.html
 
       div aria-role='navigation'
         a.deck-prev-link href='#' title='Previous'
@@ -401,6 +414,11 @@ html
     script src='vendor/deck.js/extensions/status/deck.status.js'
     script src='vendor/deck.js/extensions/navigation/deck.navigation.js'
     script src='vendor/deck.js/extensions/scale/deck.scale.js'
+
+    script src='vendor/deck.js/extensions/codemirror/codemirror.js'
+    script src='vendor/deck.js/extensions/codemirror/mode/ruby/ruby.js'
+    script src='vendor/deck.js/extensions/codemirror/mode/perl/perl.js'
+    script src='vendor/deck.js/extensions/codemirror/deck.codemirror.js'
 
     javascript:
       $(function() { $.deck('.slide'); });

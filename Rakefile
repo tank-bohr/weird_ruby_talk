@@ -6,7 +6,7 @@ require 'redcarpet'
 task default: %w[slim server]
 
 task :slim do
-  result = Slim::Template.new('index.html.slim', { pretty: true }).render()
+  result = Slim::Template.new('index.html.slim').render()
   File.write('index.html', result)
 end
 
