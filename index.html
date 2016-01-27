@@ -39,7 +39,7 @@ baz</textarea></div></td></tr></table></section><section class="slide" id="conso
 start
 inside
 blah
-this is the end</pre></section><section class="slide" id="flip-flop-removal"><h2>Есть тикет</h2><img src="img/remove-flip-flop.png" /></section><section class="slide" id="flip-flop-endoh"><img src="img/flip-flop-endoh.png" /><p>...</p><img src="img/flip-flop-anon.png" /></section><sectiom class="slide" id="refinements1"><h2>Refinements</h2><div><textarea class="code" id="code" mode="ruby">module Compaction
+this is the end</pre></section><section class="slide" id="flip-flop-removal"><h2>Есть тикет</h2><img src="img/remove-flip-flop.png" /></section><section class="slide" id="flip-flop-endoh"><img src="img/flip-flop-endoh.png" /></section><section class="slide" id="flip-flop-anon"><h2>Есть сочувствующие</h2><img src="img/flip-flop-anon.png" /></section><sectiom class="slide" id="refinements1"><h2>Refinements</h2><div><textarea class="code" id="code" mode="ruby">module Compaction
   refine Hash
     def compact
       self.select { |_, value| !value.nil? }
@@ -86,11 +86,11 @@ puts message
 $cc.call unless message =~ /Max/</textarea></div><p>вывод:</p><pre>Freddie
 Herbie
 Ron
-Max</pre></section><section class="slide" id="convert-callback"><h2>Пример</h2><div><textarea class="code" id="code" mode="ruby">def map_tree(tree, &amp;proc)
+Max</pre></section><section class="slide" id="convert-callback"><h2>Пример</h2><div><textarea class="code" id="code" mode="ruby">def map_tree(tree, &proc)
   if tree.is_a? Array
-    tree.map { |node| map_tree(node, &amp;proc) }
+    tree.map { |node| map_tree(node, &proc) }
   else
-    proc[tree]
+    proc.call(tree)
   end
 end</textarea></div></section><section class="slide" id="trees_prefix"><h2>Задача: найти общий префикс</h2><div><textarea class="code" id="code" mode="ruby">def trees_prefix(tree_a, tree_b)
   callcc do |return_cont|
@@ -101,46 +101,54 @@ end</textarea></div></section><section class="slide" id="trees_prefix"><h2>За�
       if leaf_a == leaf_b
         acc << leaf_a
       else
-        return_cont[acc]
+        return_cont.call(acc)
       end
     end
   end
-end</textarea></div></section><section class="slide" id="fold_trees"><h2>Параллельная поэлементая обработка</h2><div><textarea class="code" id="code" mode="ruby">def fold_trees(acc, iterator_a, iterator_b, &amp;proc)
+end</textarea></div></section><section class="slide" id="fold_trees"><h2>Параллельная поэлементая обработка</h2><div><textarea class="code" id="code" mode="ruby">def fold_trees(acc, iterator_a, iterator_b, &proc)
+
   leaf_a, next_iterator_a = next_step(iterator_a)
   leaf_b, next_iterator_b = next_step(iterator_b)
+
   if next_iterator_a && next_iterator_b
-    next_acc = proc[acc, leaf_a, leaf_b]
-    fold_trees(next_acc, next_iterator_a, next_iterator_b, &amp;proc)
+    next_acc = proc.call(acc, leaf_a, leaf_b)
+    fold_trees(next_acc, next_iterator_a, next_iterator_b, &proc)
   else
     acc
   end
 end</textarea></div></section><section class="slide" id="make_iterator"><h2>Имплементация</h2><div><textarea class="code" id="code" mode="ruby">def make_iterator(tree)
   -> flow {
     map_tree(tree) { |leaf|
-      flow = callcc { |k| flow[leaf, k] }
+      flow = callcc { |k|
+        flow.call(leaf, k)
+      }
     }
-    flow[false, false]
+    flow.call(nil, nil)
   }
 end</textarea></div></section><section class="slide" id="next_step"><h2>Имплементация</h2><div><textarea class="code" id="code" mode="ruby">def next_step(iterator)
-  callcc { |k| iterator[k] }
+  callcc { |k| iterator.call(k) }
 end</textarea></div></section><section class="slide" id="deprecation"><h2>Начинная с 2.2 их задепрекейтили</h2><pre>irb(main):001:0> require 'continuation'
 continuation.bundle: warning: callcc is obsolete; use Fiber instead
 => true</pre></section><section class="slide" id="continuations_ticket"><h2>Есть тикет</h2><img src="img/obsolete_continuations.png" /></section><section class="slide" id="endoh-bummer"><h2>Юсуки не выдержал</h2><img src="img/endoh-on-continuations.png" /></section><section class="slide" id="make_iterator-fibers"><h2>Fibers</h2><table><tr><th>Continuations</th><th>Fibers</th></tr><tr><td><div><textarea class="code" id="code" mode="ruby">def make_iterator(tree)
   -> flow {
     map_tree(tree) { |leaf|
-      flow = callcc { |k| flow[leaf, k] }
+      flow = callcc { |k|
+        flow.call(leaf, k)
+      }
     }
-    flow[false, false]
+    flow.call(nil, nil)
   }
 end</textarea></div></td><td><div><textarea class="code" id="code" mode="ruby">def make_iterator(tree)
   Fiber.new do
     map_tree(tree) { |leaf|
       Fiber.yield leaf, Fiber.current
     }
-    Fiber.yield(false, false)
+
+
+    Fiber.yield(nil, nil)
   end
 end</textarea></div></td></tr></table></section><section class="slide" id="next_step-fibers"><h2>Fibers</h2><table><tr><th>Continuations</th><th>Fibers</th></tr><tr><td><div><textarea class="code" id="code" mode="ruby">def next_step(iterator)
-  callcc { |k| iterator[k] }
+  callcc { |k| iterator.call(k) }
 end</textarea></div></td><td><div><textarea class="code" id="code" mode="ruby">def next_step(iterator)
   iterator.resume
 end</textarea></div></td></tr></table></section><section class="slide" id="loop-escape"><h2>Выход из цикла без продолжений</h2><div><textarea class="code" id="code" mode="ruby">def trees_prefix(tree_a, tree_b)

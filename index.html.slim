@@ -121,7 +121,9 @@ html
 
       section.slide#flip-flop-endoh
         img src="img/flip-flop-endoh.png"
-        p ...
+
+      section.slide#flip-flop-anon
+        h2 Есть сочувствующие
         img src="img/flip-flop-anon.png"
 
 
@@ -129,7 +131,7 @@ html
         h2 Refinements
         div: textarea.code#code mode='ruby'
           | module Compaction
-              refine Hash
+              refine Hash do
                 def compact
                   self.select { |_, value| !value.nil? }
                 end
@@ -232,11 +234,11 @@ html
       section.slide#convert-callback
         h2 Пример
         div: textarea.code#code mode='ruby'
-          | def map_tree(tree, &amp;proc)
+          | def map_tree(tree, &proc)
               if tree.is_a? Array
-                tree.map { |node| map_tree(node, &amp;proc) }
+                tree.map { |node| map_tree(node, &proc) }
               else
-                proc[tree]
+                proc.call(tree)
               end
             end
 
@@ -252,7 +254,7 @@ html
                   if leaf_a == leaf_b
                     acc << leaf_a
                   else
-                    return_cont[acc]
+                    return_cont.call(acc)
                   end
                 end
               end
@@ -261,12 +263,14 @@ html
       section.slide#fold_trees
         h2 Параллельная поэлементая обработка
         div: textarea.code#code mode='ruby'
-          | def fold_trees(acc, iterator_a, iterator_b, &amp;proc)
+          | def fold_trees(acc, iterator_a, iterator_b, &proc)
+
               leaf_a, next_iterator_a = next_step(iterator_a)
               leaf_b, next_iterator_b = next_step(iterator_b)
+
               if next_iterator_a && next_iterator_b
-                next_acc = proc[acc, leaf_a, leaf_b]
-                fold_trees(next_acc, next_iterator_a, next_iterator_b, &amp;proc)
+                next_acc = proc.call(acc, leaf_a, leaf_b)
+                fold_trees(next_acc, next_iterator_a, next_iterator_b, &proc)
               else
                 acc
               end
@@ -278,9 +282,11 @@ html
           | def make_iterator(tree)
               -> flow {
                 map_tree(tree) { |leaf|
-                  flow = callcc { |k| flow[leaf, k] }
+                  flow = callcc { |k|
+                    flow.call(leaf, k)
+                  }
                 }
-                flow[false, false]
+                flow.call(nil, nil)
               }
             end
 
@@ -288,7 +294,7 @@ html
         h2 Имплементация
         div: textarea.code#code mode='ruby'
           | def next_step(iterator)
-              callcc { |k| iterator[k] }
+              callcc { |k| iterator.call(k) }
             end
 
       section.slide#deprecation
@@ -317,9 +323,11 @@ html
               | def make_iterator(tree)
                   -> flow {
                     map_tree(tree) { |leaf|
-                      flow = callcc { |k| flow[leaf, k] }
+                      flow = callcc { |k|
+                        flow.call(leaf, k)
+                      }
                     }
-                    flow[false, false]
+                    flow.call(nil, nil)
                   }
                 end
             td: div: textarea.code#code mode='ruby'
@@ -328,7 +336,9 @@ html
                     map_tree(tree) { |leaf|
                       Fiber.yield leaf, Fiber.current
                     }
-                    Fiber.yield(false, false)
+
+
+                    Fiber.yield(nil, nil)
                   end
                 end
 
@@ -341,7 +351,7 @@ html
           tr
             td: div: textarea.code#code mode='ruby'
               | def next_step(iterator)
-                  callcc { |k| iterator[k] }
+                  callcc { |k| iterator.call(k) }
                 end
             td: div: textarea.code#code mode='ruby'
               | def next_step(iterator)
